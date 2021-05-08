@@ -1,0 +1,98 @@
+import os
+import numpy as np
+import pandas as pd
+
+
+os.getcwd()
+
+os.chdir("C:\\Users\\gurme\\OneDrive\\Documents\\Documents\\Gagan\\DS\DS\\Python\\Kaggle Comps\\Big Mart Sales Predictions")
+
+train=pd.read_csv("train_v9rqX0R.csv")
+
+test=pd.read_csv("test_AbJTz2l.csv")
+
+train.head()
+
+train.shape
+
+test.shape
+
+train.columns
+
+test.columns
+
+train["Data"]="Train"
+test["Item_Outlet_Sales"]=""
+test["Data"]="Test"
+
+
+full=pd.concat([train,test],0)
+
+full.isnull().sum()
+
+full.isnull().sum().sum()
+
+full["Item_Outlet_Sales"]=pd.to_numeric(full["Item_Outlet_Sales"])
+
+full.dtypes
+
+full.drop(["Item_Identifier"],1,inplace=True)
+
+full.dtypes
+
+cat=["Item_Fat_Content","Item_Type","Outlet_Identifier","Outlet_Size","Outlet_Location_Type","Outlet_Type"]
+
+for col in cat:
+    temp=pd.get_dummies(full[col],prefix=col,drop_first=True)
+    full=pd.concat([full,temp],axis=1)
+    full.drop([col],1,inplace=True)
+    
+
+full.isnull().sum().sum()
+
+for col in full.columns:
+    if full[col].isnull().sum()>0:
+        full.loc[full[col].isnull(),col]=full[col].mean()
+
+
+
+from sklearn.ensemble import RandomForestRegressor
+
+
+from sklearn.model_selection import RandomizedSearchCV
+
+clf=RandomForestRegressor(max_features=22,n_estimators=200,oob_score=True,n_jobs=1,random_state=1)
+
+train=full[full["Data"]=="Train"]
+test=full[full["Data"]=="Test"]
+
+train.shape
+
+test.shape
+
+train.columns
+
+train_y=train["Item_Outlet_Sales"]
+train.drop(["Item_Outlet_Sales"],1,inplace=True)
+
+train.drop(["Data"],1,inplace=True)
+test.drop(["Data"],1,inplace=True)
+
+clf.fit(train,train_y)
+
+test.drop(["Item_Outlet_Sales"],1,inplace=True)
+
+pred=clf.predict(test)
+
+pred.shape
+
+print(pred)
+
+test1=pd.read_csv("test_AbJTz2l.csv")
+
+submission=pd.DataFrame({"Item_Identifier":test1["Item_Identifier"],"Outlet_Identifier":test1["Outlet_Identifier"],"Item_Outlet_Sales":pred})
+
+submission.shape
+
+submission.to_csv("Gagandeep_BigMartSalesPred1.csv")
+
